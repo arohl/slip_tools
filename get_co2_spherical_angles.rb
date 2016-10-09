@@ -63,7 +63,6 @@ frame = xyz_frames[0]
 # number of molecules want angles for - there are 4 rows (i.e. 8 mols) in region 2 and 3
 n_mols = natoms/3 - 8
 
-mol_orig = Array.new
 incl_orig = Array.new
 az_orig = Array.new
 
@@ -72,9 +71,9 @@ frame = xyz_frames[0]
 
 # loop over each molecule
 for i in 0..n_mols-1 do
-  mol_orig[i] = frame[i*3].coord - frame[i*3+2].coord
-  incl_orig[i] = inclination(mol_orig[i])
-  az_orig[i] = azimuth(mol_orig[i])
+  mol_orig = frame[i*3].coord - frame[i*3+2].coord
+  incl_orig[i] = inclination(mol_orig)
+  az_orig[i] = azimuth(mol_orig)
   puts incl_orig[i], az_orig[i]
 end
 # loop over all frames calculating change in spherical angles
