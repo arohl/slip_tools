@@ -9,9 +9,9 @@ class SurfAtom
 		@charge = charge
 		@region = region
 	end
-	
+
 	attr_reader :name, :coord, :charge, :region
-	
+
 	def to_s
 		"SurfAtom: #{@name} - #{@coord} - #{@charge} - #{@region}"
 	end
@@ -29,41 +29,38 @@ n_atom = 0
 start_frame = Array.new
 got_line = got_file.gets
 while !got_line.include? "Output for configuration"
-  
+
   if got_line.include? "Surface cell parameters"
     # read surface cell; start by skipping blank line
     got_file.gets
-    
+
     # read a and alpha
     got_line = got_file.gets
     tokens = got_line.split
     a = tokens[2].to_f
     alpha = tokens[5].to_f
-    
+
     # read b
     got_line = got_file.gets
     tokens = got_line.split
     b = tokens[2].to_f
   end
 
-  # FIXME - read as proper vector!
   if got_line.include? "Surface Cartesian vectors"
     # read surface vectors; start by skipping blank line
     got_file.gets
-    
-    # read a and alpha
+
+    # read surface vector 1
     got_line = got_file.gets
     tokens = got_line.split
-    x1 = tokens[0].to_f
-    y1 = tokens[1].to_f
-    
-    # read b
+		sv1 = Vector[tokens[0].to_f, tokens[1].to_f, 0]
+
+    # read surface vector 2
     got_line = got_file.gets
     tokens = got_line.split
-    x2 = tokens[0].to_f
-    y2 = tokens[1].to_f
+		sv2 = Vector[tokens[0].to_f, tokens[1].to_f, 0]
   end
- 
+
   if got_line.include? "Region"
     # read atom data for a region; start by reading region number
     tokens = got_line.split
@@ -82,7 +79,7 @@ while !got_line.include? "Output for configuration"
       got_line = got_file.gets
     end
   end
-  
+
   got_line = got_file.gets
 end
 
@@ -99,10 +96,10 @@ end
 c = min_z.abs + 10.0
 
 while got_line = got_file.gets
-	
+
 	# skip unless final coordinates
   if got_line.include? "Final fractional/Cartesian coordinates of atoms"
-	
+
     # arrays to store atom coordinates
     frame = Array.new
 
@@ -110,7 +107,7 @@ while got_line = got_file.gets
     1.upto(5) do
       got_file.gets
     end
-    
+
     # read atoms
     for i in 0..(n_atom - 1)
       got_line = got_file.gets
@@ -130,12 +127,11 @@ got_frames.each do |fr|
 	fr.each do|f|
 	  # region in PDB is "a" rather than 1 etc
 	  region = ("A".ord - 1 + f.region).chr
-	  x =  f.coord[0] * x1 + f.coord[1] * x2
-	  y =  f.coord[0] * y1 + f.coord[1] * y2
- 	  puts "ATOM  %5i%-4s%5s%2s%4i%4s%8.3f%8.3f%8.3f%6s%6s%10s%3s%8.4f" % [atom_no, " " + f.name, "UNK", region, "1", "", x, y, f.coord[2], "1.00", "0.00", "", f.name, f.charge]
+		x_cart = f.coord.dot(sv1)
+		y_cart = f.coord.dot(sv2)
+	  puts "ATOM  %5i%-4s%5s%2s%4i%4s%8.3f%8.3f%8.3f%6s%6s%10s%3s%8.4f" % [atom_no, " " + f.name, "UNK", region, "1", "", x_cart, y_cart, f.coord[2], "1.00", "0.00", "", f.name, f.charge]
  	  atom_no = atom_no + 1
   end
   puts "ENDMDL "
   frame_no = frame_no + 1
 end
-
